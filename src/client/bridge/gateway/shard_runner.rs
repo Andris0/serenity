@@ -1,4 +1,4 @@
-use std::{borrow::Cow, sync::Arc};
+use std::{borrow::Cow, sync::Arc, time::Duration};
 
 use async_tungstenite::tungstenite::{
     self,
@@ -9,6 +9,7 @@ use futures::channel::mpsc::{self, UnboundedReceiver as Receiver, UnboundedSende
 use futures::{SinkExt, StreamExt};
 use serde::Deserialize;
 use tokio::sync::RwLock;
+use tokio::time::sleep;
 use tracing::{debug, error, info, instrument, trace, warn};
 use typemap_rev::TypeMap;
 
@@ -541,6 +542,8 @@ impl ShardRunner {
                     ReconnectType::Resume => {
                         if let Err(why) = self.shard.resume().await {
                             warn!("Failed to resume: {:?}", why);
+
+                            sleep(Duration::from_secs(5)).await;
 
                             return Ok((None, None, false));
                         }
